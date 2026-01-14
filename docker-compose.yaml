@@ -28,7 +28,90 @@ services:
     networks:
       - postgres
     restart: unless-stopped
-    
+
+  config-server:
+    image: habib0905/config-server-ms:latest
+    container_name: config-server-ms
+    ports:
+      - 8080:8080
+    depends_on:
+      - servicereg
+    networks:
+      - microservice-network
+      - postgres
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - GIT_PAT=${GIT_PAT:-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}
+
+  servicereg:
+    image: habib0905/servicereg:latest
+    container_name: servicereg
+    ports: 
+      - "8761:8761"
+    depends_on:
+      - rabbitmq
+      - zipkin
+      - postgres
+      - pgadmin
+    networks:
+      - microservice-network
+      - postgres
+
+  companyms:
+    image: habib0905/companyms:latest
+    container_name: company
+    ports: 
+      - 8081:8081
+    depends_on:
+      - servicereg
+      - config-server
+    networks:
+      - microservice-network
+      - postgres
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+
+  jobms:
+    image: habib0905/jobms:latest
+    container_name: job
+    ports: 
+      - 8082:8082
+    depends_on:
+      - servicereg
+      - config-server
+    networks:
+      - microservice-network
+      - postgres
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker      
+
+  reviewms:
+    image: habib0905/reviewms:latest
+    container_name: review
+    ports: 
+      - 8083:8083
+    depends_on:
+      - servicereg
+      - config-server
+    networks:
+      - microservice-network
+      - postgres
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker   
+
+  gatway-ms:
+    image: habib0905/gateway-ms:latest
+    container_name: gateway
+    ports: 
+      - 8084:8084
+    depends_on:
+      - servicereg
+    networks:
+      - microservice-network
+      - postgres
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker   
+  
   zipkin:
     image: openzipkin/zipkin
     container_name: zipkin
@@ -47,6 +130,8 @@ services:
       - postgres
 
 networks:
+  microservice-network:
+    driver: bridge
   postgres:
     driver: bridge
 

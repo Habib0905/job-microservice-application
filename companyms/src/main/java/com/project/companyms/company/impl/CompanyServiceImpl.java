@@ -63,12 +63,16 @@ public class CompanyServiceImpl implements CompanyService {
 
     @Override
     public void updateCompanyRating(ReviewMessage reviewMessage) {
-        System.out.println(reviewMessage.getDescription());
-        Company company = companyRepository.findById(reviewMessage.getCompanyId())
-                .orElseThrow(() -> new NotFoundException("Company not found" + reviewMessage.getCompanyId()));
-        double averageRating = reviewClient.getAverageRatingForCompany(reviewMessage.getCompanyId());
-        company.setRating(averageRating);
-        companyRepository.save(company);
+        try {
+            System.out.println(reviewMessage.getDescription());
+            Company company = companyRepository.findById(reviewMessage.getCompanyId())
+                    .orElseThrow(() -> new NotFoundException("Company not found" + reviewMessage.getCompanyId()));
+            double averageRating = reviewClient.getAverageRatingForCompany(reviewMessage.getCompanyId());
+            company.setRating(averageRating);
+            companyRepository.save(company);
+        } catch(NotFoundException e){
+            System.err.println("Permanent error processing message: " + e.getMessage());
+        }
     }
 
 
